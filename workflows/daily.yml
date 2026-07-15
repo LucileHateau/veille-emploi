@@ -1,0 +1,41 @@
+name: Veille emploi quotidienne
+
+on:
+  schedule:
+    # 06:00 UTC = 07:00 (hiver) ou 08:00 (été) heure de Paris.
+    # Modifier cette ligne pour changer l'heure d'exécution.
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}   # permet aussi de lancer le workflow manuellement depuis l'onglet "Actions"
+
+permissions:
+  contents: write   # nécessaire pour que le workflow puisse commiter les fichiers data/ et docs/
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Lancer la recherche d'emploi
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: python main.py
+
+      - name: Sauvegarder les résultats dans le dépôt (dashboard + historique)
+        run: |
+          git config user.name "job-search-bot"
+          git config user.email "job-search-bot@users.noreply.github.com"
+          git add data/seen_offers.json docs/offers.json
+          git diff --quiet --cached || git commit -m "Mise à jour automatique des offres ($(date -u +%Y-%m-%d))"
+          git push
