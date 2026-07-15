@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carnet de veille — recherche d'emploi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-deep:#0f2a44;
+    --ink-deeper:#0a1f34;
+    --ink-panel:#123354;
+    --paper:#f2f0e6;
+    --paper-dim:#c9d3d6;
+    --accent-brass:#d9a441;
+    --accent-brass-dim:#a9812f;
+    --accent-kelp:#5c8a72;
+    --accent-alert:#d3684f;
+    --line:rgba(242,240,230,0.16);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink-deep);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(217,164,65,0.07), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(92,138,114,0.10), transparent 55%);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px 64px;}
+
+  header.masthead{padding:44px 24px 0;}
+  .masthead-inner{max-width:1180px;margin:0 auto;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent-brass);margin:0 0 10px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(28px,4vw,42px);
+    margin:0 0 8px;
+    color:var(--paper);
+  }
+  .subtitle{color:var(--paper-dim);font-size:15px;max-width:640px;line-height:1.5;margin:0 0 28px;}
+
+  .stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;}
+  .stat-box{
+    border:1px solid var(--accent-brass-dim);
+    border-radius:var(--radius);
+    padding:12px 18px;
+    background:rgba(217,164,65,0.06);
+    min-width:118px;
+  }
+  .stat-box .num{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--accent-brass);line-height:1;}
+  .stat-box .label{font-size:11px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+
+  .tideline{
+    height:34px;margin:36px 0 28px;
+    background-repeat:repeat-x;background-size:44px 34px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='34' viewBox='0 0 44 34'%3E%3Cpath d='M0 20 Q11 6 22 20 T44 20' fill='none' stroke='%23d9a441' stroke-opacity='0.5' stroke-width='1.4'/%3E%3C/svg%3E");
+    opacity:.8;
+  }
+
+  .toolbar{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    margin-bottom:22px;
+  }
+  .toolbar input[type="search"]{
+    flex:1 1 220px;
+    background:var(--ink-panel);
+    border:1px solid var(--line);
+    color:var(--paper);
+    padding:10px 14px;
+    border-radius:8px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:14px;
+  }
+  .toolbar input[type="search"]::placeholder{color:var(--paper-dim);}
+  select{
+    background:var(--ink-panel);
+    border:1px solid var(--line);
+    color:var(--paper);
+    padding:10px 12px;
+    border-radius:8px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:13px;
+  }
+  label.toggle{
+    display:flex;align-items:center;gap:7px;
+    font-size:13px;color:var(--paper-dim);
+    border:1px solid var(--line);padding:9px 13px;border-radius:8px;
+    cursor:pointer;user-select:none;
+  }
+  label.toggle input{accent-color:var(--accent-brass);}
+
+  .card{
+    background:var(--ink-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent-brass);
+    padding:14px 16px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  thead th:hover{color:#f0c46e;}
+  tbody td{
+    padding:14px 16px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+    color:var(--paper);
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(217,164,65,0.05);}
+  .offer-title{font-weight:600;color:var(--paper);text-decoration:none;}
+  .offer-title:hover{color:var(--accent-brass);}
+  .site-tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;color:var(--accent-kelp);
+    border:1px solid rgba(92,138,114,0.5);
+    padding:2px 8px;border-radius:20px;
+    white-space:nowrap;
+  }
+  .summary-cell{max-width:340px;color:var(--paper-dim);line-height:1.4;}
+  .date-mono{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--paper-dim);white-space:nowrap;}
+  .deadline-soon{color:var(--accent-alert);font-weight:600;}
+  .stamp{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;font-weight:600;letter-spacing:.08em;
+    color:var(--accent-alert);
+    border:1.5px solid var(--accent-alert);
+    border-radius:4px;
+    padding:1px 6px;
+    transform:rotate(-4deg);
+    margin-left:8px;
+  }
+  .contract-pill{
+    font-size:12px;color:var(--ink-deeper);
+    background:var(--accent-brass);
+    padding:3px 9px;border-radius:20px;
+    white-space:nowrap;display:inline-block;
+  }
+  .duration{color:var(--paper-dim);font-size:12px;display:block;margin-top:4px;}
+
+  .empty-state{
+    text-align:center;padding:70px 20px;color:var(--paper-dim);
+  }
+  .empty-state .eyebrow{justify-content:center;}
+  .empty-state h2{font-family:'Fraunces',serif;color:var(--paper);font-weight:600;}
+  .empty-state code{
+    background:var(--ink-deeper);padding:2px 7px;border-radius:4px;
+    font-family:'IBM Plex Mono',monospace;color:var(--accent-brass);
+  }
+
+  footer{
+    text-align:center;color:var(--paper-dim);font-size:12px;
+    padding:30px 20px 10px;
+  }
+
+  @media (max-width: 760px){
+    thead{display:none;}
+    table, tbody, tr, td{display:block;width:100%;}
+    tbody tr{border-bottom:1px solid var(--line);padding:14px 4px;}
+    tbody td{border:none;padding:4px 12px;}
+    .summary-cell{max-width:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">Veille automatisée · mise à jour quotidienne</p>
+    <h1>Carnet de veille — recherche d'emploi</h1>
+    <p class="subtitle">
+      Écologie marine · Océanographie · Ornithologie marine · Pêche — terrain, France ou international.
+      Offres remontées automatiquement chaque jour depuis
+      <span id="site-count-inline">…</span> sources, puis triées par pertinence.
+    </p>
+    <div class="stats">
+      <div class="stat-box"><div class="num" id="stat-total">–</div><div class="label">Offres suivies</div></div>
+      <div class="stat-box"><div class="num" id="stat-new">–</div><div class="label">Nouvelles (7 jours)</div></div>
+      <div class="stat-box"><div class="num" id="stat-urgent">–</div><div class="label">Clôture &lt; 7 jours</div></div>
+      <div class="stat-box"><div class="num" id="stat-updated" style="font-size:15px;">–</div><div class="label">Dernière recherche</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="tideline"></div>
+
+<div class="wrap">
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="Rechercher un mot-clé (titre, résumé, lieu)…">
+    <select id="filter-site"><option value="">Tous les sites</option></select>
+    <select id="filter-contract"><option value="">Tous les contrats</option></select>
+    <label class="toggle"><input type="checkbox" id="filter-urgent"> Clôture &lt; 7 jours</label>
+  </div>
+
+  <div class="card">
+    <table id="offers-table">
+      <thead>
+        <tr>
+          <th data-sort="title">Offre</th>
+          <th data-sort="site_name">Site</th>
+          <th data-sort="publication_date">Publiée le</th>
+          <th data-sort="date_depot">Repérée le</th>
+          <th data-sort="deadline_date">Clôture</th>
+          <th data-sort="contract_type">Contrat</th>
+        </tr>
+      </thead>
+      <tbody id="offers-body"></tbody>
+    </table>
+    <div class="empty-state" id="empty-state" style="display:none;">
+      <p class="eyebrow">Carnet encore vierge</p>
+      <h2>Aucune offre pour le moment</h2>
+      <p>Le fichier <code>offers.json</code> n'existe pas encore ou est vide.<br>
+      Il sera généré automatiquement après la première exécution du workflow GitHub Actions.</p>
+    </div>
+  </div>
+
+  <footer>Généré automatiquement · les résumés proviennent des sites sources et ne sont pas garantis exhaustifs.</footer>
+</div>
+
+<script>
+let ALL_OFFERS = [];
+let SORT_KEY = "relevance_score";
+let SORT_DIR = -1;
+
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return Math.ceil((d - now) / 86400000);
+}
+
+function fmtDate(d){
+  if(!d) return "—";
+  return d;
+}
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const siteFilter = document.getElementById('filter-site').value;
+  const contractFilter = document.getElementById('filter-contract').value;
+  const urgentOnly = document.getElementById('filter-urgent').checked;
+
+  let rows = ALL_OFFERS.filter(o => {
+    if (siteFilter && o.site_id !== siteFilter) return false;
+    if (contractFilter && o.contract_type !== contractFilter) return false;
+    if (urgentOnly){
+      const du = daysUntil(o.deadline_date);
+      if (du === null || du > 7 || du < 0) return false;
+    }
+    if (q){
+      const hay = `${o.title} ${o.summary} ${o.location} ${o.site_name}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  rows.sort((a,b) => {
+    let av = a[SORT_KEY], bv = b[SORT_KEY];
+    if (av === undefined || av === null) av = "";
+    if (bv === undefined || bv === null) bv = "";
+    if (av < bv) return -1 * SORT_DIR;
+    if (av > bv) return 1 * SORT_DIR;
+    return 0;
+  });
+
+  const tbody = document.getElementById('offers-body');
+  tbody.innerHTML = "";
+  document.getElementById('empty-state').style.display = (ALL_OFFERS.length === 0) ? 'block' : 'none';
+  document.getElementById('offers-table').style.display = (ALL_OFFERS.length === 0) ? 'none' : 'table';
+
+  for (const o of rows){
+    const du = daysUntil(o.deadline_date);
+    const soon = (du !== null && du >= 0 && du <= 7);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <a class="offer-title" href="${o.link}" target="_blank" rel="noopener">${o.title || 'Offre sans titre'}</a>
+        ${soon ? '<span class="stamp">URGENT</span>' : ''}
+        <div class="summary-cell">${o.summary || ''}</div>
+      </td>
+      <td><span class="site-tag">${o.site_name || ''}</span></td>
+      <td class="date-mono">${fmtDate(o.publication_date)}</td>
+      <td class="date-mono">${fmtDate(o.date_depot)}</td>
+      <td class="date-mono ${soon ? 'deadline-soon' : ''}">${fmtDate(o.deadline_date)}</td>
+      <td>
+        <span class="contract-pill">${o.contract_type || 'Non précisé'}</span>
+        ${o.contract_duration ? `<span class="duration">${o.contract_duration}</span>` : ''}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function populateFilters(){
+  const sites = [...new Map(ALL_OFFERS.map(o => [o.site_id, o.site_name])).entries()];
+  const siteSel = document.getElementById('filter-site');
+  sites.sort((a,b) => a[1].localeCompare(b[1]));
+  for (const [id, name] of sites){
+    const opt = document.createElement('option');
+    opt.value = id; opt.textContent = name;
+    siteSel.appendChild(opt);
+  }
+  const contracts = [...new Set(ALL_OFFERS.map(o => o.contract_type).filter(Boolean))].sort();
+  const contractSel = document.getElementById('filter-contract');
+  for (const c of contracts){
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    contractSel.appendChild(opt);
+  }
+  document.getElementById('site-count-inline').textContent = sites.length;
+}
+
+function updateStats(){
+  document.getElementById('stat-total').textContent = ALL_OFFERS.length;
+  const now = new Date();
+  const newCount = ALL_OFFERS.filter(o => {
+    const d = new Date(o.date_depot);
+    return (now - d) / 86400000 <= 7;
+  }).length;
+  document.getElementById('stat-new').textContent = newCount;
+  const urgentCount = ALL_OFFERS.filter(o => {
+    const du = daysUntil(o.deadline_date);
+    return du !== null && du >= 0 && du <= 7;
+  }).length;
+  document.getElementById('stat-urgent').textContent = urgentCount;
+  const lastSearch = ALL_OFFERS.reduce((max, o) => (o.search_date > max ? o.search_date : max), "");
+  document.getElementById('stat-updated').textContent = lastSearch || "—";
+}
+
+document.querySelectorAll('#offers-table thead th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (SORT_KEY === key) SORT_DIR *= -1; else { SORT_KEY = key; SORT_DIR = 1; }
+    render();
+  });
+});
+['search','filter-site','filter-contract','filter-urgent'].forEach(id => {
+  document.getElementById(id).addEventListener('input', render);
+});
+
+fetch('./offers.json?_=' + Date.now())
+  .then(r => r.ok ? r.json() : [])
+  .then(data => {
+    ALL_OFFERS = Array.isArray(data) ? data : [];
+    populateFilters();
+    updateStats();
+    render();
+  })
+  .catch(() => {
+    ALL_OFFERS = [];
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('offers-table').style.display = 'none';
+  });
+</script>
+</body>
+</html>
